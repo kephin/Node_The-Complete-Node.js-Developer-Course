@@ -66,6 +66,7 @@
 6. Simplified inputs with [**yargs**](https://github.com/yargs/yargs)
 
   How to read more detail arguments like the following?
+
   ```shell
   # with arguments
   $ node yourfile.js --read
@@ -83,7 +84,8 @@
   Options are going to be just a hash! And every non-hyphenated options will be an array inside `argv._`
 7. Working with JSON
   
-  + JSON.stringify(): Converts an **object** or an **array** to a JSON string
+  :bulb: JSON.stringify(): Converts an **object** or an **array** to a JSON string
+
   ```javascript
   const person = {
     name: 'kevin',
@@ -93,14 +95,17 @@
   console.log(typeof jsonString); // => string
   console.log(jsonString); // => '{"name": "kevin", "age": 30}'
   ```
-  + JSON.parse(): Converts a JSON string into an **object** or an **array**
+
+  :bulb: JSON.parse(): Converts a JSON string into an **object** or an **array**
   ```javascript
   const carString = '{"name": "BMW", "color": "white"}';
   const car = JSON.parse(carString);
   console.log(typeof car); // => object
   console.log(car); // => {name: 'BMW', color: "white"}
   ```
+
   Now, we can CRUD note with .json files:
+
   ```javascript
   const addNote = (title, body) => {
     let notes = [];
@@ -129,4 +134,4 @@
   4. run `$ repl` and then you can inspect all the stuff in your program
   5. press `ctrl + c` to exit
 
-9. GUI debugging(Still not available..)
+9. :x: GUI debugging(Still not available..)
