@@ -242,6 +242,7 @@
 3. **[Review]** GET /todos
 
   ```javascript
+  // ./server/server.js
   app.get('/todos', (req, res) => {
     Todo
     .find()
@@ -256,7 +257,8 @@
   |if request for all docs|status 200 with 2 docs|
 
   ```javascript
-  const testData = [{
+  // ./server/tests/server.test.js
+  const testTodos = [{
     text: 'Testing data #1',
   }, {
     text: 'Testing data #2',
@@ -266,7 +268,7 @@
   beforeEach(done => {
     Todo
       .remove({})
-      .then(() => Todo.insertMany(testData))
+      .then(() => Todo.insertMany(testTodos))
       .then(() => done());
   });
 
@@ -285,6 +287,7 @@
 5. Mongoose queries and ID validation
 
   ```javascript
+  // playground/mongoose-queies.js
   const { ObjectID } = require('mongodb');
   const { mongoose } = require('./../server/db/mongoose');
   const { Todo } = require('./../server/models/todo');
@@ -326,6 +329,8 @@
   > Key point: How to fetch a variable that gets passed via URL?
 
   ```javascript
+  // server/server.js
+
   // set a variable, named 'id', followed by semicolon
   app.get('/todos/:id', (req, res) => {
     // then we can get an object with id property by req.params
@@ -347,11 +352,12 @@
   ```
 7. Test GET /todos/:id
 
-  First, we need to add **_id property** in the testData, so that we can fetch by _id
+  First, we need to add **_id property** in the testTodos, so that we can fetch by _id
   ```javascript
+  // ./server/tests/server.test.js
   const { ObjectID } = require('mongodb');
 
-  const testData = [{
+  const testTodos = [{
     _id: new ObjectID(),
     text: 'Testing data #1',
   }, {
@@ -367,14 +373,15 @@
   |if request for individual doc by invalid ID|status 404|
 
   ```javascript
+  // ./server/tests/server.test.js
   describe('GET /todos/:id', () => {
     it('should return todo', (done) => {
       request(app)
       // trasform an ObjectID to string
-        .get(`/todos/${testData[0]._id.toHexString()}`)
+        .get(`/todos/${testTodos[0]._id.toHexString()}`)
         .expect(200)
         .expect(res => {
-          expect(res.body.todo.text).toBe(testData[0].text);
+          expect(res.body.todo.text).toBe(testTodos[0].text);
         })
         .end(done);
     });
@@ -398,6 +405,7 @@
 8. **[Destroy]** Delete a resource - DELETE /todos/:id
 
   ```javascript
+  // ./server/server.js
   app.delete('/todos/:id', (req, res) => {
     const id = req.params.id;
     if (!ObjectID.isValid(id)) return res.status(404).send();
@@ -420,18 +428,19 @@
   |if request to remove a doc by invalid ID|status 404|
 
   ```javascript
+  // ./server/tests/server.test.js
   describe('DELETE /todos/:id', () => {
     it('should remove a todo', (done) => {
       request(app)
-        .delete(`/todos/${testData[1]._id.toHexString()}`)
+        .delete(`/todos/${testTodos[1]._id.toHexString()}`)
         .expect(200).expect(res => {
-          expect(res.body.todo.text).toBe(testData[1].text);
+          expect(res.body.todo.text).toBe(testTodos[1].text);
         })
         .end((err, res) => {
           if (err) return done(err);
           // check if the deleted one is gone
           Todo
-            .findById(testData[1]._id.toHexString())
+            .findById(testTodos[1]._id.toHexString())
             .then(todo => {
               expect(todo).toNotExist();
               done();
@@ -475,6 +484,7 @@
   ```
 
   ```javascript
+  // ./server/server.js
   app.patch('/todos/:id', (req, res) => {
     const id = req.params.id;
     // screen out properties that shouldn't be touched by user
@@ -507,6 +517,7 @@
   |if request to update a doc with completed = false|status 200 and completedAt wil set to null|
 
   ```javascript
+  // ./server/tests/server.test.js
   describe('PATCH /todos/:id', () => {
     it('should update the todo', (done) => {
       const patchData = {
@@ -516,7 +527,7 @@
       };
 
       request(app)
-        .patch(`/todos/${testData[0]._id.toHexString()}`)
+        .patch(`/todos/${testTodos[0]._id.toHexString()}`)
         .send(patchData)
         .expect(200)
         .expect(res => {
@@ -529,7 +540,7 @@
           if (err) return done(err);
 
           Todo
-            .findById(testData[0]._id.toHexString())
+            .findById(testTodos[0]._id.toHexString())
             .then(todo => {
               expect(todo.text).toBe(patchData.text);
               expect(todo.completed).toBe(patchData.completed);
@@ -543,7 +554,7 @@
 
     it('should clear completedAt when todo is not completed', (done) => {
       request(app)
-        .patch(`/todos/${testData[0]._id.toHexString()}`)
+        .patch(`/todos/${testTodos[0]._id.toHexString()}`)
         .send({
           completed: false,
         })
@@ -556,7 +567,7 @@
           if (err) return done(err);
 
           Todo
-            .findById(testData[0]._id.toHexString())
+            .findById(testTodos[0]._id.toHexString())
             .then(todo => {
               expect(todo.completed).toBe(false);
               expect(todo.completedAt).toNotExist();
@@ -572,7 +583,7 @@
 1. Change port 3000 to environment variable:
 
     ```javascript
-    // server.js
+    // ./server/server.js
     const port = process.env.PORT || 3000;
 
     app.listen(port, () => {
@@ -608,7 +619,7 @@
     So we need to set our mongoose connection to MONGODB_URI
 
     ```javascript
-    // mongoose.js
+    // ./server/db/mongoose.js
     mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp');
     ```
 4. Finally
@@ -636,7 +647,7 @@
     }
   }
 
-  // server/config/config.js
+  // ./server/config/config.js
   const env = process.env.NODE_ENV || 'development';
 
   if (env === 'development') {
