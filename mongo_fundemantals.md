@@ -83,8 +83,8 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
     completed: false,
   })
   //ops argument is storing all of the documents we inserted
-  .then(err => console.log(JSON.stringify(result.ops, undefined, 2));)
-  .catch(res => console.log('Unable to insert todo', err))
+  .then(result => console.log(JSON.stringify(result.ops, undefined, 2));)
+  .catch(err => console.log('Unable to insert todo', err))
 
   db.close();
 });
@@ -101,7 +101,7 @@ What is objectID?
 + we can create on our own
 
   ```javascript
-  const {ObjectID} = require('mongodb');
+  const { ObjectID } = require('mongodb');
 
   const obj = new ObjectID;
   console.log(obj); //588b0d9fbfb33f2ef8578315
@@ -146,7 +146,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
     .then(count => console.log(`Todos: ${count}`))
     .catch(err => console.log('Unable to fetch!', err));
 
-  //db.close();
+  db.close();
 });
 ```
 
@@ -157,7 +157,6 @@ db.collection('Todos')
   // target many documents and delete them
   .deleteMany({text: 'Eat lunch'})
   .then(result => console.log(result));
-
 
 db.collection('Todos')
   // target one document and delete it
@@ -175,13 +174,12 @@ db.collection('Todos')
 ```javascript
 db.collection('Todos')
   // update the item and get the new document back
-  .findOneAndUpdate({ _id: new ObjectID('588c14bfeac1f6b8e0b5f0fb') }, {
-    // update operators
-    $set: {
-      text: 'walk the cat',
-    },
-  }, {
-    returnOriginal: false,
-  })
+  .findOneAndUpdate(
+    // filter
+    { _id: new ObjectID('588c14bfeac1f6b8e0b5f0fb') },
+    // update
+    { $set: { text: 'walk the cat' } },
+    // options
+    { returnOriginal: false })
   .then(result => console.log(result));
 ```
