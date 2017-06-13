@@ -2,7 +2,7 @@
 
 ### Using Mongoose ORM(object relational mapping)
 
-Install [**Mongoose**](http://mongoosejs.com/) by
+Install [**Mongoose**](http://mongoosejs.com/)
 
 ```bash
 $ npm i mongoose -S
@@ -12,14 +12,16 @@ Connect to the local server and create a model with certain attributes, so mongo
 
 ```javascript
 const mongoose = require('mongoose');
-
 // use the built-in Promise library
 mongoose.Promise = global.Promise;
-
 // mongoose maintains collections over time, so we don't have to use callback function as MongoClient do
 mongoose.connect('mongodb://localhost:27017/TodoApp');
+```
 
-//create model with certain attributes
+Create a model and insert a piece of data
+
+```javascript
+// create model with certain attributes
 const Todo = mongoose.model('Todo', {
   text: {
     type: String,
@@ -32,15 +34,12 @@ const Todo = mongoose.model('Todo', {
     type: Number,
   },
 });
-```
 
-Create a new todo and insert it into the database
-
-```javascript
+// create a new todo and insert it into the database
 const newTodo = new Todo({
   text: 'Feed the cat',
   completed: true,
-  //This field will be filtered out since it's not in the Todo model
+  // this field will be filtered out since it's not in the Todo model
   test: 123,
 });
 
@@ -50,7 +49,7 @@ newTodo
   .catch(err => console.log('Unable to save todo', err));
 ```
 
-[Validators](http://mongoosejs.com/docs/validation.html), types, defaults and [schemas](http://mongoosejs.com/docs/guide.html)
+[Schemas](http://mongoosejs.com/docs/guide.html), [validators](http://mongoosejs.com/docs/validation.html), types and defaults
 
 ```javascript
 // we can create the schema object first
@@ -79,17 +78,17 @@ Use **Postman**, which is a central tool for building a REST APIs, helps you cre
 
 Refactor and Rearrange your file structure. Put todo.js and user.js inside the models folder, and mongoose.js into db folder. So server.js is only responsible for managing routes. View on [**my repo**](https://github.com/kephin/Node_Todo-API).
 
-### CRUD with Mongoose and Test
+### Routing and testing in CRUD with Mongoose
 
 **[Create]** Resourse creation - Post /todos. We need to install **express** and [**body-parser**](https://github.com/expressjs/body-parser) middleware(Parse incoming request bodies in a middleware before your handlers, in another word, it let us send JSON to the server)
 
-:mag: You can find extra information below
+:mag: Find extra information below
 
 |[Resourse naming](http://www.restapitutorial.com/lessons/restfulresourcenaming.html)|[HTTP Status Codes](http://www.restapitutorial.com/httpstatuscodes.html)|
 |---|---|
 
 ```javascript
-// ./server/db/mongoose.js
+// server/db/mongoose.js
 const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
@@ -99,7 +98,7 @@ module.exports = {
   mongoose,
 };
 
-// ./server/models/todo.js
+// server/models/todo.js
 const mongoose = require('mongoose');
 
 const TodoSchema = new mongoose.Schema({
@@ -172,25 +171,24 @@ Test POST /todos
 
 |Test case|Expect to receive|
 |---|---|
-|if send correct data|status 200 with completed document including id|
-|if send bad data|status 400 and error object|
+|If send correct data|status 200 with completed document including id|
+|If send bad data|status 400 and error object|
 
-Install dependent packages(**expect** for assertions; **mocha** for entire test suites; **supertest** to test HTTP requests) by
+Install dependent packages(**expect** for assertions; **mocha** for entire test suites; **supertest** to test HTTP requests)
 
 ```bash
 $ npm i mocha expect supertest nodemon -D
 ```
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 const expect = require('expect');
 const request = require('supertest');
 
 const { app } = require('./../server');
 const { todo } = require('./../models/todo');
 
-//add testing life cycle method: beforeEach, which let us run some code before every single test case
-//here we want to make sure DB is empty before any test
+// to make sure the database is empty before every test
 beforeEach(done => {
   Todo
     .remove({})
@@ -198,22 +196,21 @@ beforeEach(done => {
 });
 
 describe('POST /todos', () => {
-  it('should create a new todo with valid data', (done) => {
+  it('should create a new todo with valid data', done => {
     const text = 'new todo for testing';
-
     request(app)
       .post('/todos')
-      //send data
+      // send data
       .send({ text })
-      //assert if the request status is 200
+      // assert if the request status is 200
       .expect(200)
-      //assert if the respond body has a text property equals to the one we sent
+      // assert if the respond body has a text property equals to the one we sent
       .expect(res => {
         expect(res.body.text).toBe(text);
       })
       .end((err, res) => {
         if (err) return done(err)
-        //assert if the data got stored in mongoDB collection
+        // assert if the data got stored in mongoDB collection
         Todo
           .find()
           .then(todos => {
@@ -224,8 +221,7 @@ describe('POST /todos', () => {
           .catch(err => done(err));
       });
   });
-
-  it('should NOT create todo with invalid body data', (done) => {
+  it('should NOT create todo with invalid body data', done => {
     request(app)
       .post('/todos')
       .send({})
@@ -242,14 +238,13 @@ describe('POST /todos', () => {
           .catch(err => done(err));
       });
   });
-
 });
 ```
 
 **[Review]** GET /todos
 
   ```javascript
-  // ./server/server.js
+  // server/server.js
   app.get('/todos', (req, res) => {
     Todo
     .find()
@@ -262,17 +257,17 @@ Test GET /todos
 
 |Test case|Expect to receive|
 |---|---|
-|if request for all docs|status 200 with 2 docs|
+|If request for all docs|status 200 with 2 docs|
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 const testTodos = [{
   text: 'Testing data #1',
 }, {
   text: 'Testing data #2',
 }];
 
-//now we want to make DB has some data before the test
+// now we want to make DB has some data before the test
 beforeEach(done => {
   Todo
     .remove({})
@@ -281,7 +276,7 @@ beforeEach(done => {
 });
 
 describe('GET /todos', () => {
-  it('should list all todos', (done) => {
+  it('should list all todos', done => {
     request(app)
       .get('/todos')
       .expect(200)
@@ -315,7 +310,7 @@ Todo
   .then(todos => console.log(todos));
 
 Todo
-//grab the first query, which only returns one object
+// grab the first query, which only returns one object
   .findOne({
     // _id: id,
     completed: false,
@@ -343,7 +338,7 @@ Todo
 
 // set a variable, named 'id', followed by semicolon
 app.get('/todos/:id', (req, res) => {
-  // then we can get an object with id property by req.params
+  // then we can access an object with id property by req.params
   res.send(req.params);
 });
 
@@ -366,7 +361,7 @@ Test GET /todos/:id
 First, we need to add **_id property** in the testTodos, so that we can fetch by _id
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 const { ObjectID } = require('mongodb');
 
 const testTodos = [{
@@ -380,14 +375,14 @@ const testTodos = [{
 
 |Test case|Expect to receive|
 |---|---|
-|if request for individual doc by correct ID|status 200 with one we sent|
-|if request for individual doc by correct ID but doesn't exist |status 404|
-|if request for individual doc by invalid ID|status 404|
+|If request for individual doc by correct ID|status 200 with one we sent|
+|If request for individual doc by correct ID but doesn't exist |status 404|
+|If request for individual doc by invalid ID|status 404|
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 describe('GET /todos/:id', () => {
-  it('should return todo', (done) => {
+  it('should return todo', done => {
     request(app)
     // trasform an ObjectID to string
       .get(`/todos/${testTodos[0]._id.toHexString()}`)
@@ -397,7 +392,6 @@ describe('GET /todos/:id', () => {
       })
       .end(done);
   });
-
   it('should return 404 if todo not found', (done) => {
     const testID = new ObjectID();
     request(app)
@@ -405,7 +399,6 @@ describe('GET /todos/:id', () => {
       .expect(404)
       .end(done);
   });
-
   it('should return 404 if invalid id', (done) => {
     request(app)
       .get('/todos/123')
@@ -418,7 +411,7 @@ describe('GET /todos/:id', () => {
 **[Destroy]** Delete a resource - DELETE /todos/:id
 
 ```javascript
-// ./server/server.js
+// server/server.js
 app.delete('/todos/:id', (req, res) => {
   const id = req.params.id;
   if (!ObjectID.isValid(id)) return res.status(404).send();
@@ -437,14 +430,14 @@ Test DELETE /todos/:id
 
 |Test case|Expect to receive|
 |---|---|
-|if request to remove a doc|status 200 with that deleted doc and also doesn't exist in db|
-|if request to remove a doc by correct ID but doesn't exist |status 404|
-|if request to remove a doc by invalid ID|status 404|
+|If request to remove a doc|status 200 with that deleted doc and also doesn't exist in db|
+|If request to remove a doc by correct ID but doesn't exist |status 404|
+|If request to remove a doc by invalid ID|status 404|
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 describe('DELETE /todos/:id', () => {
-  it('should remove a todo', (done) => {
+  it('should remove a todo', done => {
     request(app)
       .delete(`/todos/${testTodos[1]._id.toHexString()}`)
       .expect(200).expect(res => {
@@ -472,16 +465,14 @@ describe('DELETE /todos/:id', () => {
         //   .catch(err => done(err));
       });
   });
-
-  it('should return 404 if todo not found', (done) => {
+  it('should return 404 if todo not found', done => {
     const testID = new ObjectID();
     request(app)
       .delete(`/todos/${testID.toHexString()}`)
       .expect(404)
       .end(done);
   });
-
-  it('should return 404 if invalid id', (done) => {
+  it('should return 404 if invalid id', done => {
     request(app)
       .delete('/todos/123')
       .expect(404)
@@ -499,7 +490,7 @@ $ npm i lodash -S
 ```
 
 ```javascript
-// ./server/server.js
+// server/server.js
 app.patch('/todos/:id', (req, res) => {
   const id = req.params.id;
   // screen out properties that shouldn't be touched by user
@@ -529,19 +520,18 @@ Test PATCH /todos/:id
 
 |Test case|Expect to receive|
 |---|---|
-|if request to update a doc|status 200 and update correctly and screen-out other properties|
-|if request to update a doc with completed = false|status 200 and completedAt wil set to null|
+|If request to update a doc|status 200 and update correctly and screen-out other properties|
+|If request to update a doc with completed = false|status 200 and completedAt wil set to null|
 
 ```javascript
-// ./server/tests/server.test.js
+// server/tests/server.test.js
 describe('PATCH /todos/:id', () => {
-  it('should update the todo', (done) => {
+  it('should update the todo', done => {
     const patchData = {
       text: 'learn node',
       completed: true,
       shouldNotExist: 'wrong data',
     };
-
     request(app)
       .patch(`/todos/${testTodos[0]._id.toHexString()}`)
       .send(patchData)
@@ -554,7 +544,6 @@ describe('PATCH /todos/:id', () => {
       })
       .end((err, res) => {
         if (err) return done(err);
-
         Todo
           .findById(testTodos[0]._id.toHexString())
           .then(todo => {
@@ -567,8 +556,7 @@ describe('PATCH /todos/:id', () => {
           .catch(err => done(err));
       });
   });
-
-  it('should clear completedAt when todo is not completed', (done) => {
+  it('should clear completedAt when todo is not completed', done => {
     request(app)
       .patch(`/todos/${testTodos[0]._id.toHexString()}`)
       .send({
@@ -581,7 +569,6 @@ describe('PATCH /todos/:id', () => {
       })
       .end((err, res) => {
         if (err) return done(err);
-
         Todo
           .findById(testTodos[0]._id.toHexString())
           .then(todo => {
@@ -600,7 +587,7 @@ describe('PATCH /todos/:id', () => {
 Change port 3000 to environment variable:
 
 ```javascript
-// ./server/server.js
+// server/server.js
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
@@ -635,6 +622,7 @@ $ heroku addons:create mongolab:sandbox
 # we can see MONGODB_URI
 $ heroku config
 ```
+
 So we need to set our mongoose connection to MONGODB_URI
 
 ```javascript
@@ -669,7 +657,7 @@ So we can set *port number* and *database URI* by telling this parameter is 'dev
   }
 }
 
-// ./server/config/config.js
+// server/config/config.js
 const env = process.env.NODE_ENV || 'development';
 
 if (env === 'development') {
