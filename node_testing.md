@@ -6,17 +6,21 @@
 
 :arrow_down: Install **mocha** by `$ npm i mocha -D`
 
-In the package.json, add `"test": "mocha **/*.test.js"` inside `scripts`. Then you can run `$ npm test` to start the test
+Create a folder named **utils or test**. We will put our testings inside here by naming it **YOURFILE.test.js**
 
-Create a folder named **utils**. We will put our testings inside here by naming it **YOURFILE.test.js**
+```javascript
+// package.json
+{
+  "scripts": {
+    "test": "mocha **/*.test.js",
+    "test-watch": "nodemon --exec \"npm test\""
+  },
+}
+```
 
-If you want to auto-refresh your test, you can use nodemon by `$ nodemon --exec 'npm test'` in the terminal
+Now, we can just run `$ npm test` to start the test or `$ npm run test-watch` to auto-refresh the test.
 
-We can also add `"test-watch": "nodemon --exec \"npm test\""` inside `scripts` in package.json.
-
-Now, we can just run `$ npm run test-watch`
-
-More features about Mocha:
+We can run some code before every test using **beforeEach()**
 
 ```javascript
 describe('utils', () => {
@@ -93,7 +97,7 @@ describe('Utils', () => {
 });
 ```
 
-:bulb: To test asyncchronous functions, we pass an **done** argument to the test function, and call done() once the tests are finished. Mocha will wail 2s and cut the test.
+:bulb: To test asynchronous functions, we pass an **done** argument to the test function, and call done() once the tests are finished. Mocha will wait 2 seconds and cut the test.
 
 ```javascript
 //util.js
@@ -104,9 +108,9 @@ module.exports.asyncSquare = (a, callback) => {
 };
 
 //util.test.js
-it('should asyn square number', (done) => {
-  utils.asyncSquare(15, (square) => {
-    expect(square).toBe(225).toBeA('number');
+it('should async square number', done => {
+  utils.asyncSquare(15, square => {
+    expect(square).toBeA('number').toBe(225);
     done();
   });
 });
