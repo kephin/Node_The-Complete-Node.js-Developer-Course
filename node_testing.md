@@ -115,3 +115,76 @@ it('should async square number', done => {
   });
 });
 ```
+
+### **[SuperTest](https://github.com/visionmedia/supertest)** for integration test
+
+:mag: *SuperTest is the super-agent driven library for testing node.js HTTP servers.*
+
+:arrow_down: Install **supertest** by `$ npm i supertest -D`
+
+To verify that if we make a http **get** request in the following url, we get 'Hello world' back. First, export app from server.js
+
+```javascript
+//server.js
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello world!');
+});
+//We can customize the status for your response
+app.get('/bad', (req, res) => {
+  res.status(404).send({
+    error: 'Page not found!',
+  });
+});
+app.listen(3000);
+
+module.exports.app = app;
+
+//server.test.js
+const request = require('supertest');
+
+const app = require('./server').app;
+
+it('should return hello world response', (done) => {
+  request(app)
+    .get('/')
+    .expect(200)
+    .expect('Hello world!')
+    .end(done);
+});
+
+it('should return page not found response', (done) => {
+  request(app)
+    .get('/bad')
+    .expect(404)
+    .expect({
+      error: 'Page not found!',
+    })
+    .end(done);
+});
+```
+
+Using **expect** library inside the **supertest** library. With **expect**, we can access headers, body...anything from the http response.
+
+```javascript
+//server.test.js
+const request = require('supertest');
+const expect = require('expect');
+
+const app = require('./server').app;
+
+it('should return hello world response', (done) => {
+  request(app)
+    .get('/')
+    .expect(200)
+    .expect((res) => {
+      //Here! We are utilizing the expect library
+      expect(res.body).toInclude({
+        error: 'Page not found!',
+        });
+      })
+    .end(done);
+});
+```
