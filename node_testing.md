@@ -188,3 +188,64 @@ it('should return hello world response', (done) => {
     .end(done);
 });
 ```
+
+### Using **[spy](https://github.com/mjackson/expect#spy-tohavebeencalled)**
+
+:mag: *Spy let you swap out a real function for a testing utility. When that test function gets called, you can create various assertion about it. Making sure it was called with certain arguments.*
+
+For example, we have a function called `handleSignup()` in app.js, `handleSignup()` calls `saveUser()` from db.js. Now if we want to verify `handleSignup()`, we **just** want to test if `handleSignup()` calls `saveUser()`(and also with correct arguments), but **NOT** to test whether `saveUser()` works correctly.
+
+```javascript
+//db.js
+module.exports.saveUser = (user) => {
+  //...saving the user to the db
+}
+
+//app.js
+// we have to use 'let' to declare because later we will need to modify the db object by 'rewire'
+let db = require('./db');
+
+module.exports.handleSingup = (email, password) => {
+  //Check if email already exist
+  // Save the user to the database
+  db.saveUser({
+    email,
+    password,
+  });
+  //Send the welcome email
+};
+```
+
+So we use **spy** to simulate/replace the functions inside `handleSignup()`, which in this case is `saveUser()`.
+
+:arrow_down: install **[rewire](https://github.com/jhnns/rewire)** by `$ npm i rewire -D`
+
+```javascript
+//app.test.js
+const expect = require('expect');
+const rewire = require('rewire');
+
+const app = rewire('./app');
+
+describe('App', () => {
+  const db = {
+    saveUser: expect.createSpy(),
+  };
+  app.__set__('db', db);
+
+  it('should call the spy correctly', () => {
+    const spy = expect.createSpy();
+    spy('kevin', 30);
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('kevin', 30);
+  });
+
+  it('should call saveUser with user object', () => {
+    const email = 'kevin@example.com';
+    const password = '12345';
+
+    app.handleSignup(email, password);
+    expect(db.saveUser).toHaveBeenCalledWith({ email, password });
+  });
+});
+```
