@@ -141,10 +141,37 @@ const addNote = (title, body) => {
 
 ### Debugger node.js applications
 
-1. Add `debugger;` inside your code
-2. Run `$ node debug YOURFILE.js --argument=="hello"`
-3. Press `n` to step next or `c` to directly go the **debugger**
-4. Run `$ repl` and then you can inspect all the stuff in your program
-5. Press `ctrl + c` to exit
+GUI debugging using Chrome
 
-:x: GUI debugging(Still not available..)
+1. Add `debugger` inside your code
+2. Run `$ node --inspect --debug-brk YOURFILE.js`
+3. Open Chrome by `chrome://inspec`
+4. Open the link under **Target**
+
+Or through VScode editor
+
+1. Use the integrated debug interface
+2. Configurations
+
+  ```json
+  {
+    "version": "0.2.0",
+    "configurations": [{
+        "type": "node",
+        "request": "launch",
+        "name": "Launch Program",
+        "program": "${file}"
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "nodemon",
+        "runtimeExecutable": "nodemon",
+        "program": "${workspaceRoot}/app.js",
+        "restart": true,
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      }
+    ]
+  }
+  ```
